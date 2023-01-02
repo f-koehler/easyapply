@@ -10,6 +10,8 @@ from . import filters, globals
 def get_env(directory: Path) -> jinja2.Environment:
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(directory))
     env.filters["strip_url_protocol"] = filters.strip_url_protocol
+    env.filters["parse_date"] = filters.parse_date
+    env.filters["format_date"] = filters.format_date
     env.globals["embed_image_base64"] = globals.embed_image_base64
     env.globals["embed_svg"] = globals.embed_svg
     return env
