@@ -50,7 +50,7 @@ def render_bibfile(bibfile: str | Path) -> str:
         raise FileNotFoundError(f"Could not find {bibfile}")
 
     bibfile = str(bibfile)
-    publications = pybtex.database.input.bibtex.Parser().parse_file()
+    publications = pybtex.database.input.bibtex.Parser().parse_file(bibfile)
     style: pybtex.style.formatting.BaseStyle = pybtex.plugin.find_plugin(
         "pybtex.style.formatting",
         "plain",
