@@ -1,7 +1,14 @@
 import base64
+import io
 import mimetypes
 from pathlib import Path
 from xml.etree import ElementTree
+
+import pybtex.backends.html
+import pybtex.database
+import pybtex.database.input.bibtex
+import pybtex.plugin
+import pybtex.style.formatting
 
 ElementTree.register_namespace("", "http://www.w3.org/2000/svg")
 
@@ -35,3 +42,25 @@ def embed_svg(path: Path, **attributes: str) -> str:
 
     svg.attrib.update(attributes)
     return ElementTree.tostring(svg).decode()
+
+
+def render_bibfile(bibfile: str | Path) -> str:
+    bibfile = Path(str(bibfile)).resolve()
+    if not bibfile.exists():
+        raise FileNotFoundError(f"Could not find {bibfile}")
+
+    bibfile = str(bibfile)
+    publications = pybtex.database.input.bibtex.Parser().parse_file()
+    style: pybtex.style.formatting.BaseStyle = pybtex.plugin.find_plugin(
+        "pybtex.style.formatting",
+        "plain",
+    )(
+        label_style="number",
+        sorting_style="none",
+        name_style="plain",
+        abbreviate_names=True,
+    )
+    formatted = style.format_bibliography(publications)
+    backend = pybtex.backends.html.Backend()
+    html = backend.write_to_file(formatted, io.StringIO())
+    return html
