@@ -2,10 +2,16 @@ from pathlib import Path
 
 import typer
 import yaml
+import logging
+import os
 
 from .. import pdf, themes
 
 app = typer.Typer()
+
+
+def init_logging():
+    logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO").upper())
 
 
 @app.command()
@@ -30,6 +36,7 @@ def build():
 
 
 def main():
+    init_logging()
     app()
 
 
