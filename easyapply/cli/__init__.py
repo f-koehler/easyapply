@@ -23,7 +23,7 @@ def list_themes():
 def build():
     with open("application.yaml") as fptr:
         config = yaml.safe_load(fptr)
-    template = themes.load_template(config["theme"])
+    template = themes.load_template(config["theme"]["name"])
     (Path.cwd() / "cv.html").write_text(
         template.render(
             theme=config["theme"],
