@@ -37,24 +37,24 @@ def build(
 
         template = themes.load_template(config["theme"]["name"])
 
+        build_pdf = output.suffix == ".pdf"
+
         html_path = tmppath / "cv.html"
         html_path.write_text(
             template.render(
                 theme=config["theme"],
                 cv=config["cv"],
                 theme_dir=Path(template.filename).parent.parent,
+                build_pdf=build_pdf,
             ),
         )
 
-        match output.suffix:
-            case ".html":
-                shutil.copy2(html_path, output)
-            case ".pdf":
-                pdf_path = tmppath / "cv.pdf"
-                pdf.render_file(html_path, pdf_path)
-                shutil.copy2(pdf_path, output)
-            case _:
-                raise ValueError(f"Unknown output format: {output.suffix}")
+        if build_pdf:
+            pdf_path = tmppath / "cv.pdf"
+            pdf.render_file(html_path, pdf_path)
+            shutil.copy2(pdf_path, output)
+        else:
+            shutil.copy2(html_path, output)
 
 
 def main():
