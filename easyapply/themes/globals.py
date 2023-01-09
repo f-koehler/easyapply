@@ -1,5 +1,6 @@
 import base64
 import io
+import logging
 import mimetypes
 import urllib.parse
 import urllib.request
@@ -14,6 +15,8 @@ import pybtex.style.formatting
 
 ElementTree.register_namespace("", "http://www.w3.org/2000/svg")
 
+LOGGER = logging.getLogger(__name__)
+
 
 def read_text_file(origin: Path | str) -> str:
     if isinstance(origin, Path):
@@ -22,16 +25,19 @@ def read_text_file(origin: Path | str) -> str:
     scheme = urllib.parse.urlparse(origin).scheme
 
     if scheme in ("http", "https"):
+        LOGGER.info(f"Loading remote resource: {origin}")
         with urllib.request.urlopen(origin) as fptr:
             return fptr.read().decode()
 
+    LOGGER.info(f"Loading local resource: {origin}")
     if scheme == "file":
-        Path(urllib.parse.urlparse(origin).path).read_text()
+        return Path(urllib.parse.urlparse(origin).path).read_text()
 
     return Path(origin).read_text()
 
 
 def embed_js(origin: Path | str) -> str:
+    LOGGER.info(f"Embedding JS: {origin}")
     code = read_text_file(origin)
     return f"<script type='text/javascript'>{code}</script>"
 
