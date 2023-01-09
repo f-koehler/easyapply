@@ -25,6 +25,7 @@ def list_themes():
 def build(
     output: Path = Path.cwd() / "cv.pdf",
     input: Path = Path.cwd() / "application.yaml",
+    debug: bool = False,
 ):
     input = input.resolve()
     output = output.resolve()
@@ -45,7 +46,7 @@ def build(
                 theme=config["theme"],
                 cv=config["cv"],
                 theme_dir=Path(template.filename).parent.parent,
-                build_pdf=True,
+                build_pdf=build_pdf,
             ),
         )
 
@@ -53,6 +54,9 @@ def build(
             pdf_path = tmppath / "cv.pdf"
             pdf.render_file(html_path, pdf_path)
             shutil.copy2(pdf_path, output)
+
+            if debug:
+                shutil.copy2(html_path, output.with_suffix(".pdf.html"))
         else:
             shutil.copy2(html_path, output)
 
