@@ -1,6 +1,8 @@
 import base64
 import io
 import mimetypes
+import urllib.parse
+import urllib.request
 from pathlib import Path
 from xml.etree import ElementTree
 
@@ -11,6 +13,28 @@ import pybtex.plugin
 import pybtex.style.formatting
 
 ElementTree.register_namespace("", "http://www.w3.org/2000/svg")
+
+
+def read_text_file(origin: Path | str) -> str:
+    if isinstance(origin, Path):
+        origin = str(origin.resolve())
+
+    scheme = urllib.parse.urlparse(origin).scheme
+
+    if scheme in ("http", "https"):
+        with urllib.request.urlopen(origin) as fptr:
+            return fptr.read().decode()
+
+    if scheme == "file":
+        Path(urllib.parse.urlparse(origin).path).read_text()
+
+    return Path(origin).read_text()
+
+
+def embed_js_base64(origin: Path | str) -> str:
+    code = read_text_file(origin)
+    encoded = base64.standard_b64encode(code.encode()).decode()
+    return f"<script src='data:text/javascript;base64,{encoded}'></script>"
 
 
 def embed_image_base64(path: Path, **attributes: dict[str, str]) -> str:

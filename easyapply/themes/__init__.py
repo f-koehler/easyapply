@@ -12,6 +12,7 @@ def get_env(directory: Path) -> jinja2.Environment:
     env.filters["strip_url_protocol"] = filters.strip_url_protocol
     env.filters["parse_date"] = filters.parse_date
     env.filters["format_date"] = filters.format_date
+    env.globals["embed_js_base64"] = globals.embed_js_base64
     env.globals["embed_image_base64"] = globals.embed_image_base64
     env.globals["embed_svg"] = globals.embed_svg
     env.globals["render_bibfile"] = globals.render_bibfile

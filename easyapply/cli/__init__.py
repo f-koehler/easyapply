@@ -1,11 +1,11 @@
+import logging
+import os
+import shutil
+import tempfile
 from pathlib import Path
 
 import typer
 import yaml
-import logging
-import os
-import tempfile
-import shutil
 
 from .. import pdf, themes
 
@@ -32,7 +32,7 @@ def build(
     with tempfile.TemporaryDirectory() as tmpdir:
         tmppath = Path(tmpdir)
 
-        with open(input, "r") as fptr:
+        with open(input) as fptr:
             config = yaml.safe_load(fptr)
 
         template = themes.load_template(config["theme"]["name"])
@@ -45,7 +45,7 @@ def build(
                 theme=config["theme"],
                 cv=config["cv"],
                 theme_dir=Path(template.filename).parent.parent,
-                build_pdf=build_pdf,
+                build_pdf=True,
             ),
         )
 
