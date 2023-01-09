@@ -61,14 +61,12 @@ def embed_image_base64(path: Path, **attributes: dict[str, str]) -> str:
     return f"<img {attrs} src='data:{mimetype};base64,{encoded}'/>"
 
 
-def embed_svg(path: Path, **attributes: str) -> str:
+def embed_svg(origin: str | Path, **attributes: str) -> str:
     if "class_" in attributes:
         attributes["class"] = attributes["class_"]
         del attributes["class_"]
 
-    with open(path) as fptr:
-        svg = ElementTree.fromstring(fptr.read())
-
+    svg = ElementTree.fromstring(read_text_file(origin))
     svg.attrib.update(attributes)
     return ElementTree.tostring(svg).decode()
 
