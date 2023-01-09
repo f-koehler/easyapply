@@ -23,9 +23,18 @@ def list_themes():
 
 @app.command()
 def build(
-    output: Path = Path.cwd() / "cv.pdf",
-    input: Path = Path.cwd() / "application.yaml",
-    debug: bool = False,
+    output: Path = typer.Option(
+        Path("cv.pdf"),
+        help="Path to the output file.",
+    ),
+    input: Path = typer.Option(
+        Path("application.yaml"),
+        help="Path to the input YAML file.",
+    ),
+    debug: bool = typer.Option(
+        False,
+        help="Save the intermediary HTML for PDF generation.",
+    ),
 ):
     input = input.resolve()
     output = output.resolve()
