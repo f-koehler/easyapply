@@ -31,10 +31,9 @@ def read_text_file(origin: Path | str) -> str:
     return Path(origin).read_text()
 
 
-def embed_js_base64(origin: Path | str) -> str:
+def embed_js(origin: Path | str) -> str:
     code = read_text_file(origin)
-    encoded = base64.standard_b64encode(code.encode()).decode()
-    return f"<script src='data:text/javascript;base64,{encoded}'></script>"
+    return f"<script type='text/javascript'>{code}</script>"
 
 
 def embed_image_base64(path: Path, **attributes: dict[str, str]) -> str:
