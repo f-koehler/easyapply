@@ -7,9 +7,11 @@ from pathlib import Path
 import typer
 import yaml
 
-from .. import pdf, themes
+from .. import pdf
 
-app = typer.Typer()
+from .. import themes
+
+app = typer.Typer(help="easyapply job application generator")
 
 
 def init_logging():
