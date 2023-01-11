@@ -6,6 +6,10 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 from xml.etree import ElementTree
+import functools
+import shutil
+import tempfile
+import subprocess
 
 import pybtex.backends.html
 import pybtex.database
@@ -61,13 +65,54 @@ def embed_image_base64(path: Path, **attributes: dict[str, str]) -> str:
     return f"<img {attrs} src='data:{mimetype};base64,{encoded}'>"
 
 
+@functools.cache
+def find_scour() -> tuple[bool, Path | None]:
+    path = shutil.which("scour")
+    if not path:
+        LOGGER.error("Could not find scour, skipping SVG optimization")
+        return False, None
+    LOGGER.info(f"Found scour: {path}")
+    return True, Path(path)
+
+
 def embed_svg(origin: str | Path, **attributes: str) -> str:
     if "class_" in attributes:
         attributes["class"] = attributes["class_"]
         del attributes["class_"]
 
-    svg = ElementTree.fromstring(read_text_file(origin))
-    svg.attrib.update(attributes)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        original = Path(tmpdir) / "original.svg"
+        optimized = Path(tmpdir) / "optimized.svg"
+
+        original.write_text(read_text_file(origin))
+
+        scour_found, path = find_scour()
+        if scour_found:
+            cmd = [
+                str(path),
+                "-i",
+                str(original),
+                "-o",
+                str(optimized),
+                "--set-precision=8",
+                "--enable-id-stripping",
+                "--shorten-ids",
+                "--create-groups",
+                "--renderer-workaround",
+                "--strip-xml-prolog",
+                "--remove-titles",
+                "--remove-descriptions",
+                "--enable-viewboxing",
+                "--strip-xml-space",
+                "--no-line-breaks",
+            ]
+            subprocess.check_output(cmd)
+
+            svg = ElementTree.fromstring(optimized.read_text())
+        else:
+            svg = ElementTree.fromstring(original.read_text())
+
+        svg.attrib.update(attributes)
     return ElementTree.tostring(svg).decode()
 
 
