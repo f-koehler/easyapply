@@ -12,6 +12,7 @@ import urllib.request
 from pathlib import Path
 from xml.etree import ElementTree
 
+import bs4
 import pybtex.backends.html
 import pybtex.database
 import pybtex.database.input.bibtex
@@ -179,4 +180,7 @@ def render_bibfile(bibfile: str | Path) -> str:
     formatted = style.format_bibliography(publications)
     backend = pybtex.backends.html.Backend()
     html = backend.write_to_file(formatted, io.StringIO())
-    return html
+
+    soup = bs4.BeautifulSoup(html, "html.parser")
+    body = soup.find("body")
+    return "".join(str(x) for x in body.contents)
