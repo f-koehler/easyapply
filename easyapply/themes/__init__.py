@@ -8,7 +8,10 @@ from . import filters, globals
 
 @functools.cache
 def get_env(directory: Path) -> jinja2.Environment:
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(directory))
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(directory),
+        bytecode_cache=jinja2.FileSystemBytecodeCache(),
+    )
     env.filters["strip_url_protocol"] = filters.strip_url_protocol
     env.filters["parse_date"] = filters.parse_date
     env.filters["format_date"] = filters.format_date
