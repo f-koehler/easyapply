@@ -26,8 +26,8 @@ def read_text_file(origin: Path | str) -> str:
 
     if scheme in ("http", "https"):
         LOGGER.info(f"Loading remote resource: {origin}")
-        with urllib.request.urlopen(origin) as fptr:
-            return fptr.read().decode()
+        with urllib.request.urlopen(origin) as req:
+            return req.read().decode()
 
     LOGGER.info(f"Loading local resource: {origin}")
     if scheme == "file":
