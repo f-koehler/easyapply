@@ -8,7 +8,6 @@ import typer
 import yaml
 
 from .. import pdf
-
 from .. import themes
 
 app = typer.Typer(help="easyapply job application generator")
@@ -21,6 +20,12 @@ def init_logging():
 @app.command()
 def list_themes():
     print("List of themes")
+
+
+RESERVED_KEYS = [
+    "theme_dir",
+    "build_pdf",
+]
 
 
 @app.command()
@@ -47,6 +52,10 @@ def build(
         with open(input) as fptr:
             config = yaml.safe_load(fptr)
 
+        for reserved in RESERVED_KEYS:
+            if reserved in config:
+                raise ValueError("Reserved key in config: {reserved}")
+
         template = themes.load_template(config["theme"]["name"])
 
         build_pdf = output.suffix == ".pdf"
@@ -54,10 +63,9 @@ def build(
         html_path = tmppath / "cv.html"
         html_path.write_text(
             template.render(
-                theme=config["theme"],
-                cv=config["cv"],
                 theme_dir=Path(template.filename).parent.parent,
                 build_pdf=build_pdf,
+                **config,
             ),
         )
 
