@@ -1,15 +1,16 @@
 import base64
+import functools
+import hashlib
 import io
 import logging
 import mimetypes
+import shutil
+import subprocess
+import tempfile
 import urllib.parse
 import urllib.request
 from pathlib import Path
 from xml.etree import ElementTree
-import functools
-import shutil
-import tempfile
-import subprocess
 
 import pybtex.backends.html
 import pybtex.database
@@ -75,21 +76,56 @@ def find_scour() -> tuple[bool, Path | None]:
     return True, Path(path)
 
 
-def embed_svg(origin: str | Path, **attributes: str) -> str:
-    if "class_" in attributes:
-        attributes["class"] = attributes["class_"]
-        del attributes["class_"]
+@functools.cache
+def find_svgo() -> tuple[bool, Path | None]:
+    path = shutil.which("svgo")
+    if not path:
+        LOGGER.error("Could not find svgo, skipping SVG optimization")
+        return False, None
+    LOGGER.info(f"Found svgo: {path}")
+    return True, Path(path)
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        original = Path(tmpdir) / "original.svg"
-        optimized = Path(tmpdir) / "optimized.svg"
 
-        original.write_text(read_text_file(origin))
+def optimize_svg(svg: str) -> str:
+    scour_found, scour_path = find_scour()
+    svgo_found, svgo_path = find_svgo()
 
-        scour_found, path = find_scour()
-        if scour_found:
+    suffix = ""
+    suffix += "_svgo" if svgo_found else ""
+    suffix += "_scour" if scour_found else ""
+    cachedir = Path(tempfile.gettempdir()) / ("easyapply_svg_cache" + suffix)
+    cachedir.mkdir(parents=True, exist_ok=True)
+
+    hash = hashlib.sha256(svg.encode()).hexdigest()
+    cachefile = cachedir / f"{hash}.svg"
+    if cachefile.exists():
+        return cachefile.read_text()
+
+    if svgo_found:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            original = Path(tmpdir) / "original.svg"
+            optimized = Path(tmpdir) / "optimized.svg"
+            original.write_text(svg)
+
             cmd = [
-                str(path),
+                str(svgo_path),
+                "--input",
+                str(original),
+                "--output",
+                str(optimized),
+                "--multipass",
+            ]
+            subprocess.check_output(cmd)
+            svg = optimized.read_text()
+
+    if scour_found:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            original = Path(tmpdir) / "original.svg"
+            optimized = Path(tmpdir) / "optimized.svg"
+            original.write_text(svg)
+
+            cmd = [
+                str(scour_path),
                 "-i",
                 str(original),
                 "-o",
@@ -107,12 +143,20 @@ def embed_svg(origin: str | Path, **attributes: str) -> str:
                 "--no-line-breaks",
             ]
             subprocess.check_output(cmd)
+            svg = optimized.read_text()
 
-            svg = ElementTree.fromstring(optimized.read_text())
-        else:
-            svg = ElementTree.fromstring(original.read_text())
+    cachefile.write_text(svg)
 
-        svg.attrib.update(attributes)
+    return svg
+
+
+def embed_svg(origin: str | Path, **attributes: str) -> str:
+    if "class_" in attributes:
+        attributes["class"] = attributes["class_"]
+        del attributes["class_"]
+
+    svg = ElementTree.fromstring(optimize_svg(read_text_file(origin)))
+    svg.attrib.update(attributes)
     return ElementTree.tostring(svg).decode()
 
 
