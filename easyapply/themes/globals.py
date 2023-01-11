@@ -58,7 +58,7 @@ def embed_image_base64(path: Path, **attributes: dict[str, str]) -> str:
     if attrs:
         attrs = " " + attrs
 
-    return f"<img {attrs} src='data:{mimetype};base64,{encoded}'/>"
+    return f"<img {attrs} src='data:{mimetype};base64,{encoded}'>"
 
 
 def embed_svg(origin: str | Path, **attributes: str) -> str:
