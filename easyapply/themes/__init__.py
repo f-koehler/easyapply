@@ -21,11 +21,13 @@ def get_env(directory: Path) -> jinja2.Environment:
     env.filters["scour"] = filters.scour
     env.filters["scour"] = filters.add_attributes
     env.filters["add_attributes"] = filters.add_attributes
+    env.filters["embed_js"] = filters.embed_js
+    env.filters["bibtex"] = filters.bibtex
+    env.filters["embed_image"] = filters.embed_image
+    env.filters["b64encode"] = filters.b64encode
 
     env.globals["read_text"] = globals.read_text
-    env.globals["embed_js"] = globals.embed_js
-    env.globals["embed_image_base64"] = globals.embed_image_base64
-    env.globals["render_bibfile"] = globals.render_bibfile
+    env.globals["read_bytes"] = globals.read_bytes
     return env
 
 

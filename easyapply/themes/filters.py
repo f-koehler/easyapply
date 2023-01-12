@@ -8,6 +8,16 @@ import subprocess
 import tempfile
 from pathlib import Path
 from xml.etree import ElementTree
+import io
+import base64
+import mimetypes
+
+import bs4
+import pybtex.backends.html
+import pybtex.database
+import pybtex.database.input.bibtex
+import pybtex.plugin
+import pybtex.style.formatting
 
 ElementTree.register_namespace("", "http://www.w3.org/2000/svg")
 
@@ -144,6 +154,51 @@ def scour(svg: str) -> str:
     optimized = subprocess.check_output(cmd, input=svg.encode()).decode()
     cache_file.write_text(optimized)
     return optimized
+
+
+def embed_js(code: str) -> str:
+    return f"<script type='text/javascript'>{code}</script>"
+
+
+def bibtex(source: str) -> str:
+    publications = pybtex.database.input.bibtex.Parser().parse_string(source)
+    style: pybtex.style.formatting.BaseStyle = pybtex.plugin.find_plugin(
+        "pybtex.style.formatting",
+        "plain",
+    )(
+        label_style="number",
+        sorting_style="none",
+        name_style="plain",
+        abbreviate_names=True,
+    )
+    formatted = style.format_bibliography(publications)
+    backend = pybtex.backends.html.Backend()
+    html = backend.write_to_file(formatted, io.StringIO())
+
+    soup = bs4.BeautifulSoup(html, "html.parser")
+    body = soup.find("body")
+    return "".join(str(x) for x in body.contents)
+
+
+def b64encode(data: bytes) -> str:
+    return base64.b64encode(data).decode()
+
+
+def embed_image(img: str, extension: str = "png", **attributes: str) -> str:
+    if "class_" in attributes:
+        if "class" in attributes:
+            raise ValueError("Cannot set both _class and class")
+        attributes["class"] = attributes["class_"]
+        del attributes["class_"]
+
+    mimetype, _ = mimetypes.guess_type("test." + extension)
+
+    if mimetype is None:
+        raise ValueError(f"Could not guess mimetype for .{extension}")
+
+    attrs = " ".join(f'{key}="{attributes[key]}"' for key in attributes)
+
+    return f"<img {attrs} src='data:{mimetype};base64,{img}'>"
 
 
 def add_attributes(svg: str, **attributes: str) -> str:
