@@ -18,6 +18,7 @@ import pybtex.database
 import pybtex.database.input.bibtex
 import pybtex.plugin
 import pybtex.style.formatting
+import cairosvg
 
 ElementTree.register_namespace("", "http://www.w3.org/2000/svg")
 
@@ -151,14 +152,31 @@ def optimize_svg(svg: str) -> str:
     return svg
 
 
-def embed_svg(origin: str | Path, **attributes: str) -> str:
+def embed_svg(
+    origin: str | Path,
+    rasterize: bool = False,
+    dpi: int = 600,
+    **attributes: str,
+) -> str:
     if "class_" in attributes:
         attributes["class"] = attributes["class_"]
         del attributes["class_"]
 
     svg = ElementTree.fromstring(optimize_svg(read_text_file(origin)))
-    svg.attrib.update(attributes)
-    return ElementTree.tostring(svg).decode()
+    if not rasterize:
+        svg.attrib.update(attributes)
+        source = ElementTree.tostring(svg).decode()
+        return source
+
+    source = ElementTree.tostring(svg).decode()
+    encoded = base64.standard_b64encode(
+        cairosvg.svg2png(bytestring=source.encode(), dpi=dpi)
+    ).decode()
+
+    attrs = " ".join(f'{key}="{attributes[key]}"' for key in attributes)
+    if attrs:
+        attrs = " " + attrs
+    return f"<img { attrs } src='data:image/png;base64,{encoded}'>"
 
 
 def render_bibfile(bibfile: str | Path) -> str:
