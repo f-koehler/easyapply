@@ -156,6 +156,8 @@ def embed_svg(
     origin: str | Path,
     rasterize: bool = False,
     dpi: int = 600,
+    fill: str | None = None,
+    stroke: str | None = None,
     **attributes: str,
 ) -> str:
     if "class_" in attributes:
@@ -163,6 +165,15 @@ def embed_svg(
         del attributes["class_"]
 
     svg = ElementTree.fromstring(optimize_svg(read_text_file(origin)))
+
+    if fill is not None:
+        for element in svg.iter("path"):
+            element.attrib["fill"] = fill
+
+    if stroke is not None:
+        for element in svg.iter("path"):
+            element.attrib["stroke"] = stroke
+
     if not rasterize:
         svg.attrib.update(attributes)
         source = ElementTree.tostring(svg).decode()
