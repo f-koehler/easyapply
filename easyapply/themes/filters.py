@@ -1,5 +1,18 @@
 import datetime
+import functools
+import hashlib
+import logging
 import re
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+from xml.etree import ElementTree
+
+ElementTree.register_namespace("", "http://www.w3.org/2000/svg")
+
+
+LOGGER = logging.getLogger(__name__)
 
 RE_URL_PROTO = re.compile(r"^\w+://(.+)")
 RE_GITHUB_USERNAME = re.compile(r"^github\.com/([\w\d\-]+)(?:$|/.*)")
@@ -37,3 +50,109 @@ def parse_date(date: str) -> datetime.datetime:
 
 def format_date(date: datetime.datetime, format: str) -> str:
     return date.strftime(format)
+
+
+@functools.cache
+def find_scour() -> tuple[bool, Path | None]:
+    path = shutil.which("scour")
+    if not path:
+        LOGGER.error("Could not find scour, skipping SVG optimization")
+        return False, None
+    LOGGER.info(f"Found scour: {path}")
+    return True, Path(path)
+
+
+@functools.cache
+def find_svgo() -> tuple[bool, Path | None]:
+    path = shutil.which("svgo")
+    if not path:
+        LOGGER.error("Could not find svgo, skipping SVG optimization")
+        return False, None
+    LOGGER.info(f"Found svgo: {path}")
+    return True, Path(path)
+
+
+def set_fill(svg: str, color: str) -> str:
+    parsed = ElementTree.fromstring(svg)
+    for element in parsed.iter("{http://www.w3.org/2000/svg}path"):
+        element.attrib["fill"] = color
+    return ElementTree.tostring(parsed).decode()
+
+
+def set_stroke(svg: str, color: str) -> str:
+    parsed = ElementTree.fromstring(svg)
+    for element in parsed.iter("{http://www.w3.org/2000/svg}path"):
+        element.attrib["stroke"] = color
+    return ElementTree.tostring(parsed).decode()
+
+
+def svgo(svg: str) -> str:
+    svgo_found, svgo_path = find_svgo()
+    if not svgo_found:
+        LOGGER.error("Cannot apply svgo as command was not found")
+        return svg
+
+    hash = hashlib.sha256(svg.encode()).hexdigest()
+    cache_dir = Path(tempfile.gettempdir()) / "easyapply-cache" / "svgo"
+    cache_file = cache_dir / (hash + ".svg")
+    if cache_file.exists():
+        return cache_file.read_text()
+
+    cache_file.parent.mkdir(parents=True, exist_ok=True)
+
+    cmd = [
+        str(svgo_path),
+        "--input",
+        "-",
+        "--output",
+        "-",
+        "--multipass",
+    ]
+    optimized = subprocess.check_output(cmd, input=svg.encode()).decode()
+    cache_file.write_text(optimized)
+    return optimized
+
+
+def scour(svg: str) -> str:
+    scour_found, scour_path = find_scour()
+    if not scour_found:
+        LOGGER.error("Cannot apply scour as command was not found")
+        return svg
+
+    hash = hashlib.sha256(svg.encode()).hexdigest()
+    cache_dir = Path(tempfile.gettempdir()) / "easyapply-cache" / "scour"
+    cache_file = cache_dir / (hash + ".svg")
+    if cache_file.exists():
+        return cache_file.read_text()
+
+    cache_file.parent.mkdir(parents=True, exist_ok=True)
+
+    cmd = [
+        str(scour_path),
+        "--set-precision=8",
+        "--enable-id-stripping",
+        "--shorten-ids",
+        "--create-groups",
+        "--renderer-workaround",
+        "--strip-xml-prolog",
+        "--remove-titles",
+        "--remove-descriptions",
+        "--enable-viewboxing",
+        "--strip-xml-space",
+        "--no-line-breaks",
+    ]
+    optimized = subprocess.check_output(cmd, input=svg.encode()).decode()
+    cache_file.write_text(optimized)
+    return optimized
+
+
+def add_attributes(svg: str, **attributes: str) -> str:
+    if "class_" in attributes:
+        if "class" in attributes:
+            raise ValueError("Cannot set both _class and class")
+        attributes["class"] = attributes["class_"]
+        del attributes["class_"]
+
+    parsed = ElementTree.fromstring(svg)
+    parsed.attrib.update(attributes)
+    return ElementTree.tostring(parsed).decode()

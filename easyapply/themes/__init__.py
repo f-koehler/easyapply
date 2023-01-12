@@ -15,9 +15,16 @@ def get_env(directory: Path) -> jinja2.Environment:
     env.filters["strip_url_protocol"] = filters.strip_url_protocol
     env.filters["parse_date"] = filters.parse_date
     env.filters["format_date"] = filters.format_date
+    env.filters["set_fill"] = filters.set_fill
+    env.filters["set_stroke"] = filters.set_stroke
+    env.filters["svgo"] = filters.svgo
+    env.filters["scour"] = filters.scour
+    env.filters["scour"] = filters.add_attributes
+    env.filters["add_attributes"] = filters.add_attributes
+
+    env.globals["read_text"] = globals.read_text
     env.globals["embed_js"] = globals.embed_js
     env.globals["embed_image_base64"] = globals.embed_image_base64
-    env.globals["embed_svg"] = globals.embed_svg
     env.globals["render_bibfile"] = globals.render_bibfile
     return env
 
