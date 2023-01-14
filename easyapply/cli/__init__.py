@@ -127,7 +127,7 @@ def build(
 
                 if debug_pdf:
                     shutil.copy2(
-                        pdf_path, (directory / template_file).with_suffix(".pdf.html")
+                        html_path, (directory / template_file).with_suffix(".pdf.html")
                     )
             else:
                 shutil.copy2(html_path, directory / template_file)
