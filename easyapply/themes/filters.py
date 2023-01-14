@@ -62,6 +62,12 @@ def format_date(date: datetime.datetime, format: str) -> str:
     return date.strftime(format)
 
 
+def day_suffix(date: datetime.datetime) -> str:
+    if (4 <= date.day <= 20) or (24 <= date.day <= 30):
+        return "th"
+    return ["st", "nd", "rd"][date.day % 10 - 1]
+
+
 @functools.cache
 def find_scour() -> tuple[bool, Path | None]:
     path = shutil.which("scour")

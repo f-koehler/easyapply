@@ -15,6 +15,7 @@ def get_env(directory: Path) -> jinja2.Environment:
     env.filters["strip_url_protocol"] = filters.strip_url_protocol
     env.filters["parse_date"] = filters.parse_date
     env.filters["format_date"] = filters.format_date
+    env.filters["day_suffix"] = filters.day_suffix
     env.filters["set_fill"] = filters.set_fill
     env.filters["set_stroke"] = filters.set_stroke
     env.filters["svgo"] = filters.svgo
@@ -31,7 +32,7 @@ def get_env(directory: Path) -> jinja2.Environment:
     return env
 
 
-def load_template(name: str, template: str = "cv.html") -> jinja2.Template:
+def load_template(name: str, template: str) -> jinja2.Template:
     template_dir = Path.cwd().parent / "themes" / name / "templates"
     env = get_env(template_dir)
     return env.get_template(template)
