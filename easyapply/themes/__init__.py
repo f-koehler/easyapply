@@ -26,6 +26,8 @@ def get_env(directory: Path) -> jinja2.Environment:
     env.filters["bibtex"] = filters.bibtex
     env.filters["embed_image"] = filters.embed_image
     env.filters["b64encode"] = filters.b64encode
+    env.filters["href_phone"] = filters.href_phone
+    env.filters["href_email"] = filters.href_email
 
     env.globals["read_text"] = globals.read_text
     env.globals["read_bytes"] = globals.read_bytes

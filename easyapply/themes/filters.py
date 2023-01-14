@@ -217,3 +217,13 @@ def add_attributes(svg: str, **attributes: str) -> str:
     parsed = ElementTree.fromstring(svg)
     parsed.attrib.update(attributes)
     return ElementTree.tostring(parsed).decode()
+
+
+def href_phone(phone: str) -> str:
+    return "tel:" + phone.replace(" ", "").replace("-", "").replace("(", "").replace(
+        ")", ""
+    )
+
+
+def href_email(email: str) -> str:
+    return "mailto:" + email
