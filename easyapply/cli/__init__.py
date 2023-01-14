@@ -18,6 +18,7 @@ def init_logging():
     logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO").upper())
 
 
+LOGGER = logging.getLogger(__name__)
 RESERVED_KEYS = [
     "theme_dir",
     "build_pdf",
@@ -70,56 +71,66 @@ def render(
 
 @app.command()
 def build(
-    output: Path = typer.Option(
-        Path("cv.pdf"),
-        "--output",
-        "-o",
-        help="Path to the output file.",
+    directory: Path = typer.Argument(
+        Path("."),
+        help="Directory to build.",
     ),
-    input: Path = typer.Option(
-        Path("application.yaml"),
-        "--input",
-        "-i",
-        help="Path to the input YAML file.",
-    ),
-    debug: bool = typer.Option(
+    build_pdf: bool = typer.Option(
         False,
-        help="Save the intermediary HTML for PDF generation.",
+        "--pdf",
+        help="Build PDFs",
+    ),
+    debug_pdf: bool = typer.Option(
+        False,
+        help="Save the intermediary HTML used for PDF generation.",
     ),
 ):
-    input = input.resolve()
-    output = output.resolve()
+    directory = directory.resolve()
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmppath = Path(tmpdir)
-
-        with open(input, "r") as fptr:
-            config = yaml.safe_load(fptr)
-
-        check_config(config)
-
-        template = themes.load_template(config["theme"]["name"])
-
-        build_pdf = output.suffix == ".pdf"
-
-        html_path = tmppath / "cv.html"
-        html_path.write_text(
-            template.render(
-                theme_dir=Path(template.filename).parent.parent,
-                build_pdf=build_pdf,
-                **config,
-            ),
+    for name in ["application.yaml", "application.yml"]:
+        if (path := directory / name).exists():
+            config_path = path
+            break
+    else:
+        raise FileNotFoundError(
+            f"application.yaml/application.yml not found in directory: {directory}"
         )
 
-        if build_pdf:
-            pdf_path = tmppath / "cv.pdf"
-            pdf.render_file(html_path, pdf_path)
-            shutil.copy2(pdf_path, output)
+    with open(config_path, "r") as fptr:
+        config = yaml.safe_load(fptr)
 
-            if debug:
-                shutil.copy2(html_path, output.with_suffix(".pdf.html"))
-        else:
-            shutil.copy2(html_path, output)
+    check_config(config)
+
+    for template_file in config["theme"]["templates"]:
+        LOGGER.info("Rendering template %s", template_file)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmppath = Path(tmpdir)
+
+            template = themes.load_template(
+                config["theme"]["name"],
+                template=template_file,
+            )
+
+            html_path = tmppath / "output.html"
+            html_path.write_text(
+                template.render(
+                    theme_dir=Path(template.filename).parent.parent,
+                    build_pdf=build_pdf,
+                    **config,
+                ),
+            )
+
+            if build_pdf:
+                pdf_path = tmppath / "output.pdf"
+                pdf.render_file(html_path, pdf_path)
+                shutil.copy2(pdf_path, (directory / template_file).with_suffix(".pdf"))
+
+                if debug_pdf:
+                    shutil.copy2(
+                        pdf_path, (directory / template_file).with_suffix(".pdf.html")
+                    )
+            else:
+                shutil.copy2(html_path, directory / template_file)
 
 
 def main():
