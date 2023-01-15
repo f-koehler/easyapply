@@ -4,9 +4,12 @@ import shutil
 import tempfile
 from pathlib import Path
 from typing import Any
+import time
 
 import typer
 import yaml
+import watchdog.observers
+import watchdog.events
 
 from .. import pdf
 from .. import themes
@@ -131,6 +134,48 @@ def build(
                     )
             else:
                 shutil.copy2(html_path, directory / template_file)
+
+
+class BuildEventHandler(watchdog.events.FileSystemEventHandler):
+    def __init__(
+        self, directory: Path, build_pdf: bool = False, debug_pdf: bool = False
+    ):
+        self.directory = directory
+        self.build_pdf = build_pdf
+        self.debug_pdf = debug_pdf
+
+    def on_any_event(self, event):
+        build(self.directory, build_pdf=self.build_pdf, debug_pdf=self.debug_pdf)
+
+
+@app.command()
+def watch(
+    directory: Path = typer.Argument(
+        Path("."),
+        help="Directory to build.",
+    ),
+    build_pdf: bool = typer.Option(
+        False,
+        "--pdf",
+        help="Build PDFs",
+    ),
+    debug_pdf: bool = typer.Option(
+        False,
+        help="Save the intermediary HTML used for PDF generation.",
+    ),
+):
+    build(directory, build_pdf=build_pdf, debug_pdf=debug_pdf)
+
+    event_handler = BuildEventHandler(directory)
+    observer = watchdog.observers.Observer()
+    observer.schedule(event_handler, directory / "application.yaml", recursive=True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
 
 
 def main():
