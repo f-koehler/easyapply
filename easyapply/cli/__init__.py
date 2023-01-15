@@ -53,7 +53,7 @@ def load_config(directory: Path) -> dict[str, Any]:
         )
 
 
-@app.command()
+@app.command(help="Render a specific template.")
 def render(
     directory: Path = typer.Argument(
         Path("."),
@@ -78,7 +78,7 @@ def render(
     print(rendered)
 
 
-@app.command()
+@app.command(help="Build application project.")
 def build(
     directory: Path = typer.Argument(
         Path("."),
@@ -141,7 +141,7 @@ class BuildEventHandler(watchdog.events.FileSystemEventHandler):
         build(self.directory, build_pdf=self.build_pdf, debug_pdf=self.debug_pdf)
 
 
-@app.command()
+@app.command(help="Build application project and watch for changes.")
 def watch(
     directory: Path = typer.Argument(
         Path("."),
