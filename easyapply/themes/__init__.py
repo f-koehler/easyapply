@@ -34,7 +34,16 @@ def get_env(directory: Path) -> jinja2.Environment:
     return env
 
 
+def find_theme(name: str) -> Path | None:
+    template_dir = Path.cwd().parent / "themes" / name
+
+    if template_dir.exists():
+        return template_dir
+
+    return None
+
+
 def load_template(name: str, template: str) -> jinja2.Template:
-    template_dir = Path.cwd().parent / "themes" / name / "templates"
-    env = get_env(template_dir)
-    return env.get_template(template)
+    if theme_dir := find_theme(name):
+        return get_env(theme_dir / "templates").get_template(template)
+    raise RuntimeError(f"Theme {name} not found")

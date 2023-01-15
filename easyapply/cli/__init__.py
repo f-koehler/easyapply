@@ -40,25 +40,31 @@ def check_config(config: dict[str, Any]):
         raise ValueError("Missing name setting in confg['theme']")
 
 
+def load_config(directory: Path) -> dict[str, Any]:
+    for name in ["application.yaml", "application.yml"]:
+        if (config_path := directory / name).exists():
+            with open(config_path, "r") as fptr:
+                config = yaml.safe_load(fptr)
+                check_config(config)
+                return config
+    else:
+        raise FileNotFoundError(
+            f"application.yaml/application.yml not found in directory: {directory}"
+        )
+
+
 @app.command()
 def render(
+    directory: Path = typer.Argument(
+        Path("."),
+        help="Directory to build.",
+    ),
     name: Path = typer.Argument(
         ...,
         help="Relative of the template within the theme.",
     ),
-    input: Path = typer.Option(
-        Path("application.yaml"),
-        "--input",
-        "-i",
-        help="Path to the input YAML file.",
-    ),
 ):
-    input = input.resolve()
-
-    with open(input, "r") as fptr:
-        config = yaml.safe_load(fptr)
-
-    check_config(config)
+    config = load_config(directory)
 
     template = themes.load_template(
         config["theme"]["name"],
@@ -89,20 +95,7 @@ def build(
     ),
 ):
     directory = directory.resolve()
-
-    for name in ["application.yaml", "application.yml"]:
-        if (path := directory / name).exists():
-            config_path = path
-            break
-    else:
-        raise FileNotFoundError(
-            f"application.yaml/application.yml not found in directory: {directory}"
-        )
-
-    with open(config_path, "r") as fptr:
-        config = yaml.safe_load(fptr)
-
-    check_config(config)
+    config = load_config(directory)
 
     for template_file in config["theme"]["templates"]:
         LOGGER.info("Rendering template %s", template_file)
@@ -166,9 +159,13 @@ def watch(
 ):
     build(directory, build_pdf=build_pdf, debug_pdf=debug_pdf)
 
+    config = load_config(directory)
+    theme_dir = themes.find_theme(config["theme"]["name"])
+
     event_handler = BuildEventHandler(directory)
     observer = watchdog.observers.Observer()
     observer.schedule(event_handler, directory / "application.yaml", recursive=True)
+    observer.schedule(event_handler, theme_dir, recursive=True)
     observer.start()
     try:
         while True:
