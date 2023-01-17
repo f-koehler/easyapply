@@ -1,18 +1,19 @@
+import base64
 import datetime
 import functools
 import hashlib
+import io
 import logging
+import mimetypes
 import re
 import shutil
 import subprocess
 import tempfile
 from pathlib import Path
 from xml.etree import ElementTree
-import io
-import base64
-import mimetypes
 
 import bs4
+import cairosvg
 import pybtex.backends.html
 import pybtex.database
 import pybtex.database.input.bibtex
@@ -220,10 +221,16 @@ def add_attributes(svg: str, **attributes: str) -> str:
 
 
 def href_phone(phone: str) -> str:
-    return "tel:" + phone.replace(" ", "").replace("-", "").replace("(", "").replace(
-        ")", ""
-    )
+    phone = phone.replace(" ", "")
+    phone = phone.replace("-", "")
+    phone = phone.replace("(", "")
+    phone = phone.replace(")", "")
+    return "tel:" + phone
 
 
 def href_email(email: str) -> str:
     return "mailto:" + email
+
+
+def rasterize(svg: str, dpi: int = 300) -> bytes:
+    return cairosvg.svg2png(bytestring=svg.encode(), dpi=dpi)
