@@ -29,6 +29,7 @@ def get_env(directory: Path) -> jinja2.Environment:
     env.filters["href_phone"] = filters.href_phone
     env.filters["href_email"] = filters.href_email
     env.filters["rasterize"] = filters.rasterize
+    env.filters["split_paragraphs"] = filters.split_paragraphs
 
     env.globals["read_text"] = globals.read_text
     env.globals["read_bytes"] = globals.read_bytes

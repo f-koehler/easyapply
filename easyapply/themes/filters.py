@@ -234,3 +234,7 @@ def href_email(email: str) -> str:
 
 def rasterize(svg: str, dpi: int = 300) -> bytes:
     return cairosvg.svg2png(bytestring=svg.encode(), dpi=dpi)
+
+
+def split_paragraphs(text: str) -> list[str]:
+    return text.split("\n\n")
