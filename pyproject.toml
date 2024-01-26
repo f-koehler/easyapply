@@ -24,7 +24,7 @@ cairosvg = "^2.6.0"
 pre-commit = "^3.0.0"
 mypy = "^1.0"
 isort = "^5.11.4"
-black = "^23.0.0"
+black = "^24.0.0"
 types-pyyaml = "^6.0.12.2"
 types-beautifulsoup4 = "^4.11.6.2"
 
