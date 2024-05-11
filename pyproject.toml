@@ -19,7 +19,6 @@ beautifulsoup4 = "^4.11.1"
 watchdog = "^4.0.0"
 cairosvg = "^2.6.0"
 
-
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.0.0"
 mypy = "^1.0"
@@ -27,6 +26,11 @@ isort = "^5.11.4"
 black = "^24.0.0"
 types-pyyaml = "^6.0.12.2"
 types-beautifulsoup4 = "^4.11.6.2"
+
+[tool.ruff.lint]
+preview = true
+select = ["E", "F", "B", "N", "I", "ANN", "UP", "PERF", "FURB"]
+ignore = ["F722", "E501"]
 
 [build-system]
 requires = ["poetry-core"]

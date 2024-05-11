@@ -174,7 +174,7 @@ def bibtex(source: str) -> str:
         "plain",
     )(
         label_style="number",
-        sorting_style="none",
+        sorting_style="ydnt",
         name_style="plain",
         abbreviate_names=True,
     )
