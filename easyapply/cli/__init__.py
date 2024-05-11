@@ -2,17 +2,16 @@ import logging
 import os
 import shutil
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
-import time
 
 import typer
-import yaml
-import watchdog.observers
 import watchdog.events
+import watchdog.observers
+import yaml
 
-from .. import pdf
-from .. import themes
+from .. import pdf, themes
 
 app = typer.Typer(help="easyapply job application generator")
 
