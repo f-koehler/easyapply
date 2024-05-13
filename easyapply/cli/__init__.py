@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import time
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Any
 
 import typer
 import watchdog.events
@@ -54,16 +54,11 @@ def load_config(directory: Path) -> dict[str, Any]:
 
 @app.command(help="Render a specific template.")
 def render(
-    directory: Annotated[
-        Path,
-        typer.Argument(
-            Path("."),
-            help="Directory to build.",
-        ),
-    ],
-    name: Annotated[
-        Path, typer.Argument(..., help="Relative of the template within the theme.")
-    ],
+    directory: Path = typer.Argument(
+        Path("."),
+        help="Directory to build.",
+    ),
+    name: Path = typer.Argument(..., help="Relative of the template within the theme."),
 ) -> None:
     config = load_config(directory)
 
@@ -81,7 +76,7 @@ def render(
 
 @app.command(help="Build application project.")
 def build(
-    directory: Annotated[Path, typer.Argument(Path("."), help="Directory to build.")],
+    directory: Path = typer.Argument(Path("."), help="Directory to build."),
     build_pdf: bool = typer.Option(
         False,
         "--pdf",
@@ -141,7 +136,7 @@ class BuildEventHandler(watchdog.events.FileSystemEventHandler):
 
 @app.command(help="Build application project and watch for changes.")
 def watch(
-    directory: Annotated[Path, typer.Argument(Path("."), help="Directory to build.")],
+    directory: Path = typer.Argument(Path("."), help="Directory to build."),
     build_pdf: bool = typer.Option(
         False,
         "--pdf",
