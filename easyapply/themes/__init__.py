@@ -42,6 +42,10 @@ def find_theme(name: str) -> Path | None:
     if template_dir.exists():
         return template_dir
 
+    template_dir = Path.cwd().parent / "themes" / name
+    if template_dir.exists():
+        return template_dir
+
     return None
 
 
