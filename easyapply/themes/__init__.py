@@ -37,7 +37,7 @@ def get_env(directory: Path) -> jinja2.Environment:
 
 
 def find_theme(name: str) -> Path | None:
-    template_dir = Path.cwd().parent / "themes" / name
+    template_dir = Path.cwd() / "themes" / name
 
     if template_dir.exists():
         return template_dir
