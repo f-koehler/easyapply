@@ -11,7 +11,7 @@ import watchdog.events
 import watchdog.observers
 import yaml
 
-from .. import pdf, themes
+from . import pdf, themes
 
 app = typer.Typer(help="easyapply job application generator")
 
