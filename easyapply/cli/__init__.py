@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 import contextlib
 
 import typer
@@ -89,6 +89,12 @@ def render(
 @app.command(help="Build application project.")
 def build(
     directory: Path = typer.Argument(Path("."), help="Directory to build."),
+    output_directory: Optional[Path] = typer.Option(
+        None,
+        "-o",
+        "--output",
+        help="Directory to save output files, defaults to build directory.",
+    ),
     build_pdf: bool = typer.Option(
         False,
         "--pdf",
@@ -99,6 +105,10 @@ def build(
         help="Save the intermediary HTML used for PDF generation.",
     ),
 ) -> None:
+    if output_directory:
+        output_directory = output_directory.resolve()
+    else:
+        output_directory = Path.cwd().resolve()
     with change_working_directory(directory):
         config = load_config(Path.cwd())
 
@@ -123,18 +133,19 @@ def build(
 
                 if build_pdf:
                     pdf_path = tmppath / "output.pdf"
-                    pdf.render_file(html_path, pdf_path)
-                    shutil.copy2(
-                        pdf_path, (Path.cwd() / template_file).with_suffix(".pdf")
+                    pdf_out_path = (output_directory / template_file).with_suffix(
+                        ".pdf"
                     )
+                    pdf.render_file(html_path, pdf_path)
+                    shutil.copy2(pdf_path, pdf_out_path)
 
                     if debug_pdf:
                         shutil.copy2(
                             html_path,
-                            (Path.cwd() / template_file).with_suffix(".pdf.html"),
+                            (output_directory / template_file).with_suffix(".pdf.html"),
                         )
                 else:
-                    shutil.copy2(html_path, Path.cwd() / template_file)
+                    shutil.copy2(html_path, output_directory / template_file)
 
 
 class BuildEventHandler(watchdog.events.FileSystemEventHandler):
@@ -170,7 +181,9 @@ def watch(
 
         event_handler = BuildEventHandler(Path.cwd())
         observer = watchdog.observers.Observer()
-        observer.schedule(event_handler, Path.cwd() / "application.yaml", recursive=True)
+        observer.schedule(
+            event_handler, Path.cwd() / "application.yaml", recursive=True
+        )
         observer.schedule(event_handler, theme_dir, recursive=True)
         observer.start()
         try:
