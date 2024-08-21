@@ -24,7 +24,7 @@ pre-commit = "^3.0.0"
 mypy = "^1.0"
 types-pyyaml = "^6.0.12.2"
 types-beautifulsoup4 = "^4.11.6.2"
-ruff = "^0.5.0"
+ruff = "^0.6.0"
 pytest = "^8.2.1"
 
 [tool.ruff.lint]
