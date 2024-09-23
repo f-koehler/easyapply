@@ -31,7 +31,7 @@ def test_parse_date():
     assert filters.parse_date("2022-01-01") == datetime.datetime(2022, 1, 1)
     assert filters.parse_date("2022-01") == datetime.datetime(2022, 1, 1)
     assert filters.parse_date("2022") == datetime.datetime(2022, 1, 1)
-    
+
     with pytest.raises(ValueError):
         assert filters.parse_date("2022-01-01:01:14")
 
