@@ -2,10 +2,14 @@
 
 {
   # https://devenv.sh/basics/
-  env.GREET = "devenv";
+  env.LD_LIBRARY_PATH = "${pkgs.gcc-unwrapped.lib}/lib64:${pkgs.cairo}/lib";
 
   # https://devenv.sh/packages/
-  packages = [ pkgs.git ];
+  packages = with pkgs; [
+    git
+    gcc-unwrapped
+    cairo
+  ];
 
   # https://devenv.sh/languages/
   languages.python = {
