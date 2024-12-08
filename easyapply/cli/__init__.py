@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 import contextlib
 
+from rich.logging import RichHandler
 import typer
 import watchdog.events
 import watchdog.observers
@@ -28,7 +29,12 @@ def change_working_directory(directory: Path):
 
 
 def init_logging() -> None:
-    logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO").upper())
+    logging.basicConfig(
+        level=os.environ.get("LOGLEVEL", "INFO"),
+        format="%(message)s",
+        datefmt="[%X]",
+        handlers=[RichHandler()],
+    )
 
 
 LOGGER = logging.getLogger(__name__)
