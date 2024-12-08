@@ -51,6 +51,16 @@
     deadnix.enable = true;
     nil.enable = true;
     statix.enable = true;
+
+    actionlint.enable = true;
+    check-added-large-files.enable = true;
+    check-executables-have-shebangs.enable = true;
+    check-shebang-scripts-are-executable.enable = true;
+    check-symlinks.enable = true;
+    end-of-file-fixer.enable = true;
+    mixed-line-endings.enable = true;
+    prettier.enable = true;
+    trim-trailing-whitespace.enable = true;
   };
 
   # See full reference at https://devenv.sh/reference/options/
