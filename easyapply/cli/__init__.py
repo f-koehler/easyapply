@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 import contextlib
 
 import typer
@@ -89,7 +89,7 @@ def render(
 @app.command(help="Build application project.")
 def build(
     directory: Path = typer.Argument(Path("."), help="Directory to build."),
-    output_directory: Optional[Path] = typer.Option(
+    output_directory: Path | None = typer.Option(
         None,
         "-o",
         "--output",

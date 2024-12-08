@@ -1,10 +1,4 @@
-{
-  pkgs,
-  lib,
-  config,
-  inputs,
-  ...
-}: {
+{pkgs, ...}: {
   # https://devenv.sh/basics/
   env.LD_LIBRARY_PATH = "${pkgs.gcc-unwrapped.lib}/lib64:${pkgs.cairo}/lib";
 
@@ -45,6 +39,19 @@
 
   # https://devenv.sh/pre-commit-hooks/
   # pre-commit.hooks.shellcheck.enable = true;
+  git-hooks.hooks = {
+    ruff.enable = true;
+    ruff-format.enable = true;
+
+    check-toml.enable = true;
+    taplo.enable = true;
+    yamlfmt.enable = true;
+
+    alejandra.enable = true;
+    deadnix.enable = true;
+    nil.enable = true;
+    statix.enable = true;
+  };
 
   # See full reference at https://devenv.sh/reference/options/
 }
