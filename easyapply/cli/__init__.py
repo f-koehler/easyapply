@@ -118,8 +118,17 @@ def build(
     with change_working_directory(directory):
         config = load_config(Path.cwd())
 
-        for template_file in config["theme"]["templates"]:
-            LOGGER.info("Rendering template %s", template_file)
+        for document in config["documents"]:
+            template_file: str | None = config["documents"][document].get("template")
+            if template_file is None:
+                if "letter" in document:
+                    template_file = "letter.html"
+                else:
+                    template_file = "cv.html"
+
+            LOGGER.info(
+                "Rendering document %s with template %s", document, template_file
+            )
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmppath = Path(tmpdir)
 
@@ -133,25 +142,26 @@ def build(
                     template.render(
                         theme_dir=Path(template.filename).parent.parent,
                         build_pdf=build_pdf,
+                        document=config["documents"][document],
                         **config,
                     ),
                 )
 
                 if build_pdf:
                     pdf_path = tmppath / "output.pdf"
-                    pdf_out_path = (output_directory / template_file).with_suffix(
-                        ".pdf"
-                    )
+                    pdf_out_path = (output_directory / document).with_suffix(".pdf")
                     pdf.render_file(html_path, pdf_path)
                     shutil.copy2(pdf_path, pdf_out_path)
 
                     if debug_pdf:
                         shutil.copy2(
                             html_path,
-                            (output_directory / template_file).with_suffix(".pdf.html"),
+                            (output_directory / document).with_suffix(".pdf.html"),
                         )
                 else:
-                    shutil.copy2(html_path, output_directory / template_file)
+                    shutil.copy2(
+                        html_path, (output_directory / document).with_suffix(".html")
+                    )
 
 
 class BuildEventHandler(watchdog.events.FileSystemEventHandler):
