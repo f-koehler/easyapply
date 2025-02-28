@@ -16,8 +16,8 @@ def read_text(origin: Path | str) -> str:
     Returns:
         str: the contents of the file
 
-    If the path is remote (i.e. starts with "http://"), uses `urllib.request.urlopen` to read the file.
-    Otherwise, uses `Path.read_text`.
+    If the path is remote (i.e. starts with "http://"), uses :external+python:py:func:`urllib.request.urlopen` to read the file.
+    Otherwise, uses :external+python:py:meth:`pathlib.Path.read_text`.
     """
     if isinstance(origin, Path):
         origin = str(origin.resolve())
@@ -46,8 +46,8 @@ def read_bytes(origin: Path | str) -> bytes:
     Returns:
         bytes: the contents of the file
 
-    If the path is remote (i.e. starts with "http://"), uses `urllib.request.urlopen` to read the file.
-    Otherwise, uses `Path.read_bytes`.
+    If the path is remote (i.e. starts with "http://"), uses :external+python:py:func:`urllib.request.urlopen` to read the file.
+    Otherwise, uses :external+python:py:meth:`pathlib.Path.read_bytes`.
     """
     if isinstance(origin, Path):
         origin = str(origin.resolve())
