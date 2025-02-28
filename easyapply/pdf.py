@@ -7,6 +7,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 def render_file(path: Path, output: Path, delay: int = 100) -> None:
+    """
+    Render a PDF of an HTML file.
+
+    Parameters:
+        path (Path): Path to the HTML file
+        output (Path): Path to write the PDF to
+        delay (int): Number of milliseconds to wait after the page has finished loading before rendering the PDF
+    """
     with sync_playwright() as p:
         LOGGER.info("Launching chromium headless")
         browser = p.chromium.launch(headless=True)

@@ -7,6 +7,18 @@ LOGGER = logging.getLogger(__name__)
 
 
 def read_text(origin: Path | str) -> str:
+    """
+    Reads the contents of a file at the given path as text.
+
+    Parameters:
+        origin (Path | str): the path to the file to read
+
+    Returns:
+        str: the contents of the file
+
+    If the path is remote (i.e. starts with "http://"), uses `urllib.request.urlopen` to read the file.
+    Otherwise, uses `Path.read_text`.
+    """
     if isinstance(origin, Path):
         origin = str(origin.resolve())
 
@@ -25,6 +37,18 @@ def read_text(origin: Path | str) -> str:
 
 
 def read_bytes(origin: Path | str) -> bytes:
+    """
+    Reads the contents of a file at the given path as bytes.
+
+    Parameters:
+        origin (Path | str): the path to the file to read
+
+    Returns:
+        bytes: the contents of the file
+
+    If the path is remote (i.e. starts with "http://"), uses `urllib.request.urlopen` to read the file.
+    Otherwise, uses `Path.read_bytes`.
+    """
     if isinstance(origin, Path):
         origin = str(origin.resolve())
 

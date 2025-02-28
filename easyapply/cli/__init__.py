@@ -20,6 +20,18 @@ app = typer.Typer(help="easyapply job application generator")
 
 @contextlib.contextmanager
 def change_working_directory(directory: Path):
+    """
+    A context manager that temporarily changes the current working directory
+    to the specified directory.
+
+    Parameters:
+    directory (Path): The target directory to change to temporarily.
+
+    Yields:
+    None: Temporarily changes the working directory to the specified path
+    and reverts back to the original directory after the context exits.
+    """
+
     current_cwd = Path.cwd()
     try:
         os.chdir(directory)
@@ -29,6 +41,26 @@ def change_working_directory(directory: Path):
 
 
 def init_logging() -> None:
+    """
+    Initialize the logging system.
+
+    The logging level is determined by the LOGLEVEL environment variable, which
+    can be set to one of the following values:
+
+        - CRITICAL
+        - ERROR
+        - WARNING
+        - INFO
+        - DEBUG
+        - NOTSET
+
+    The default value is INFO.
+
+    The output format is set to plain text with a timestamp.
+
+    The logging is configured to use the RichHandler which provides colored
+    output.
+    """
     logging.basicConfig(
         level=os.environ.get("LOGLEVEL", "INFO"),
         format="%(message)s",
@@ -45,6 +77,20 @@ RESERVED_KEYS = [
 
 
 def check_config(config: dict[str, Any]) -> None:
+    """
+    Validates the provided configuration dictionary.
+
+    This function checks if the configuration dictionary contains any reserved
+    keys and ensures that the required 'theme' and 'name' settings are present.
+
+    Parameters:
+    config (dict[str, Any]): The configuration dictionary to validate.
+
+    Raises:
+    ValueError: If a reserved key is found in the config, or if the 'theme'
+                setting or 'name' setting within 'theme' is missing.
+    """
+
     for reserved in RESERVED_KEYS:
         if reserved in config:
             raise ValueError("Reserved key in config: {reserved}")
@@ -57,6 +103,19 @@ def check_config(config: dict[str, Any]) -> None:
 
 
 def load_config(directory: Path) -> dict[str, Any]:
+    """
+    Loads the configuration from the given directory.
+
+    The configuration is loaded from the first found application.yaml or
+    application.yml file in the given directory.
+
+    Raises:
+    FileNotFoundError: If no application.yaml/application.yml file is found in
+                      the given directory.
+
+    Returns:
+    dict[str, Any]: The loaded configuration.
+    """
     for name in ["application.yaml", "application.yml"]:
         if (config_path := directory / name).exists():
             with open(config_path) as fptr:
@@ -77,6 +136,15 @@ def render(
     ),
     name: Path = typer.Argument(..., help="Relative of the template within the theme."),
 ) -> None:
+    """
+    Render a specific template.
+
+    This command renders the specified template and prints the output to stdout.
+
+    Parameters:
+    directory (Path): The directory containing the application configuration.
+    name (Path): The name of the template to render, relative to the theme.
+    """
     with change_working_directory(directory):
         config = load_config(Path.cwd())
 
@@ -111,6 +179,27 @@ def build(
         help="Save the intermediary HTML used for PDF generation.",
     ),
 ) -> None:
+    """
+    Build the application project by rendering documents with specified templates.
+
+    This function processes the documents defined in the application's configuration,
+    renders them using Jinja2 templates, and outputs the rendered HTML or PDF files.
+    It supports options for output directory, PDF generation, and saving intermediary
+    HTML files for debugging purposes.
+
+    Args:
+        directory (Path): The directory containing the application configuration.
+        output_directory (Path | None): The directory to save output files, defaults to the build directory.
+        build_pdf (bool): Whether to build PDFs of the documents.
+        debug_pdf (bool): Whether to save the intermediary HTML used for PDF generation.
+
+    Raises:
+        ValueError: If a reserved key is found in the config, or if the 'theme'
+                    setting or 'name' setting within 'theme' is missing.
+        FileNotFoundError: If no application.yaml/application.yml file is found in
+                          the given directory.
+    """
+
     if output_directory:
         output_directory = output_directory.resolve()
     else:
@@ -168,6 +257,14 @@ class BuildEventHandler(watchdog.events.FileSystemEventHandler):
     def __init__(
         self, directory: Path, build_pdf: bool = False, debug_pdf: bool = False
     ) -> None:
+        """
+        Initialize the event handler with a directory to monitor and options.
+
+        Parameters:
+        directory (Path): The directory to monitor for changes.
+        build_pdf (bool): Whether to build PDFs when rebuilding the project.
+        debug_pdf (bool): Whether to save the intermediary HTML used for PDF generation.
+        """
         self.directory = directory
         self.build_pdf = build_pdf
         self.debug_pdf = debug_pdf
@@ -189,6 +286,21 @@ def watch(
         help="Save the intermediary HTML used for PDF generation.",
     ),
 ) -> None:
+    """
+    Build the application project and watch for changes in specified directories.
+
+    This function sets up a directory watcher that rebuilds the project whenever
+    changes are detected in the application configuration or theme files.
+
+    Args:
+        directory (Path): The directory to build and monitor for changes.
+        build_pdf (bool): Whether to build PDFs of the documents.
+        debug_pdf (bool): Whether to save the intermediary HTML used for PDF generation.
+
+    Raises:
+        KeyboardInterrupt: If the process is interrupted manually.
+    """
+
     with change_working_directory(directory):
         build(Path.cwd(), build_pdf=build_pdf, debug_pdf=debug_pdf)
 
@@ -211,6 +323,13 @@ def watch(
 
 
 def main() -> None:
+    """
+    Main entry point for the easyapply CLI application.
+
+    This function initializes logging and starts the typer application,
+    which defines the command-line interface for easyapply.
+    """
+
     init_logging()
     app()
 
