@@ -2,14 +2,6 @@
 __pycache__/
 .mypy_cache/
 .ruff_cache/
-uv.lock
 *.egg-info/
 /build/
-
-# Devenv
-.devenv*
-devenv.local.nix
-
-# direnv
-.direnv
-
+/.venv
