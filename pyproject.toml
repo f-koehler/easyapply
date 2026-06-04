@@ -13,7 +13,7 @@ dependencies = [
   "pyyaml>=6.0.2",
   "rich>=13.9.4",
   "setuptools>=75.1.0",
-  "typer>=0.12.5",
+  "typer>=0.26.7",
   "watchdog>=5.0.2",
 ]
 
